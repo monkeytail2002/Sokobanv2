@@ -1,0 +1,99 @@
+package sokobanmechanics;
+
+import java.awt.Point;
+import javafx.scene.input.KeyCode;
+import sokobanelements.MapElements;
+
+public class Movement {
+	
+	
+	private Level currLevel;
+	
+	
+	/**
+     * 
+     * Translates user input into the game for movement of the Warehouse Keeper.
+     * Uses arrow keys for input
+     * 
+     */
+    public void handleKey(KeyCode code) {
+        switch (code) {
+            case UP:
+                move(new Point(-1, 0));
+                break;
+
+            case RIGHT:
+                move(new Point(0, 1));
+                break;
+
+            case DOWN:
+                move(new Point(1, 0));
+                break;
+
+            case LEFT:
+                move(new Point(0, -1));
+                break;
+
+            default:
+        }
+
+    }
+
+    /**
+     * Handles the movement of the keeper and the objects that collide with it
+     *
+     * @param delta - the movement delta
+     */
+    private void move(Point delta) {
+
+//        if (isGameComplete()) {
+//            return;  //Stops player movement beca
+//        }
+
+        /**
+         * 
+         * Gets the warehouse keepers location and checks what object is at the target location.
+         * 
+         */
+    	Point keeperPosition = currLevel.getKeeperPosition();
+        MapElements keeper = currLevel.getObjectAt(keeperPosition);  
+        Point targetObjectPoint = Grid.objectPoint(keeperPosition, delta);
+        MapElements keeperTarget = currLevel.getObjectAt(targetObjectPoint);
+
+
+        boolean keeperMoved = false;
+
+        // Check keeper target
+        
+        /**
+         * Checks the object to see is it is moveable
+         */
+        switch (keeperTarget) {
+
+            case WALL:
+                break;
+
+            case CRATE:
+                MapElements crateTarget = currLevel.getTargetObject(targetObjectPoint, delta);  //Gets the object at the delta position
+
+                if (crateTarget == MapElements.FLOOR) {
+                    currLevel.moveGameObjectBy(keeperTarget, targetObjectPoint, delta);
+                    currLevel.moveGameObjectBy(keeper, keeperPosition, delta);
+                    keeperMoved = true;
+                    //Checks to see if the crateTarget is floor or not.  If it is not floor, then the crate can't be moved into the crateTarget position.
+                }
+                break;
+
+            case FLOOR:
+                currLevel.moveGameObjectBy(keeper, keeperPosition, delta);
+                keeperMoved = true;
+                break;
+
+            default:
+
+        }
+
+    }
+
+}
+
