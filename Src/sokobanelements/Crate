@@ -1,0 +1,10 @@
+package sokobanelements;
+
+public class Crate extends ImmovableObject{
+	
+	public Crate() {
+		image = "Crate.png";
+		setImageView(setImage());
+	}
+	
+}
