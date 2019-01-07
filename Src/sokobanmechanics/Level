@@ -1,0 +1,176 @@
+package sokobanmechanics;
+
+import java.awt.*;
+import java.util.Iterator;
+import java.util.List;
+import sokobanelements.MapElements;
+
+
+
+public final class Level implements Iterable<MapElements> {
+
+  
+    private final String name; //Level name
+    private final int index;  //Level index
+    private final Grid objectsGrid;  //Array for the objects in the grid
+    private final Grid diamondsGrid; //Object containing diamonds in the grid.
+    private int numberOfDiamonds = 0;  //number of diamonds in the grid.
+    private Point keeperPosition = new Point(0, 0);  //Current position of Warehouse Keeper
+
+
+    /**
+     * 
+     * Makes a level with the levels name, position in the index, and the raw data of thelevel.
+     * 
+     */
+    public Level(String levelName, int levelIndex, List<String> raw_level) {
+
+        name = levelName;
+        index = levelIndex;
+        
+        
+        
+        int rows = raw_level.size();
+        int columns = raw_level.get(0).trim().length();
+        // Gets the first row and column.  Then trims for white space before getting the length.
+
+
+        objectsGrid = new Grid(rows, columns);  //Creates the object grid
+        diamondsGrid = new Grid(rows, columns);  //Creates the diamond grid
+
+      /**
+       * 
+       * String loop inside a list loop (for faster iteration speed) that checks if a tile is a diamond and if it is it places the diamond into the diamond grid and places a floor tile into the object grid if not a diamond.
+       * Unless the tile is the keepers position.
+       * 
+       */
+        
+        for (int row = 0; row < raw_level.size(); row++) {
+
+             for (int col = 0; col < raw_level.get(row).length(); col++) {
+
+                MapElements curTile = MapElements.fromChar(raw_level.get(row).charAt(col));  //Makes the tile null when adding a floor or diamond section.
+
+                // If the tile is a diamond, add it to the diamond grid and add a floor
+                // into the objects grid.
+                if (curTile == MapElements.DIAMOND) {
+                    numberOfDiamonds++;
+                    diamondsGrid.objectPlace(curTile, row, col);
+                    curTile = MapElements.FLOOR;
+                } else if (curTile == MapElements.KEEPER) {
+                    keeperPosition = new Point(row, col);
+                }
+
+                objectsGrid.objectPlace(curTile, row, col);
+                curTile = null;
+            } 
+        } 
+    }
+
+    boolean isComplete() {
+        int cratedDiamondsCount = 0;
+        for (int row = 0; row < objectsGrid.ROWS; row++) {
+            for (int col = 0; col < objectsGrid.COLUMNS; col++) {
+                if (objectsGrid.getObjectAt(col, row) == MapElements.CRATE && diamondsGrid.getObjectAt(col, row) == MapElements.DIAMOND) {
+                    cratedDiamondsCount++;  //Checks to see if the diamond has been crated and adds to the count.
+                }
+            }
+        }
+
+        return cratedDiamondsCount >= numberOfDiamonds;
+    }
+
+
+    public String getName() {
+        return name;  //Returns level name
+    }
+
+    int getIndex() {
+        return index;  //Returns level index
+    }
+    
+    Point getKeeperPosition() {
+        return keeperPosition; //Returns Keeper position.
+    }
+
+    MapElements getTargetObject(Point source, Point delta) {
+        return objectsGrid.getObjectSource(source, delta);  //Returns an object at a distance from source.  The distance is delta.
+    }
+
+
+    MapElements getObjectAt(Point p) {
+        return objectsGrid.getObjectAt(p);  //Returns object point on the grid
+    }
+
+    void moveGameObjectBy(MapElements object, Point source, Point delta) {
+        moveGameObjectTo(object, source, Grid.objectPoint(source, delta));  //Moves the game object (keeper and crates) to a new point on the map grid by delta.
+    }
+
+
+    private void moveGameObjectTo(MapElements object, Point source, Point destination) {
+        objectsGrid.objectPlace(getObjectAt(destination), source);
+        objectsGrid.objectPlace(object, destination);
+        //Moves an object into a new destination.
+    }
+
+    @Override
+    public String toString() {
+        return objectsGrid.toString();
+    }
+
+  
+    @Override
+    public Iterator<MapElements> iterator() {
+        return new LevelIterator();  //Returns an iterator for the map elements
+    }
+
+
+    /**
+     * 
+     * Supplies the necessary interface for the iteration of the grid that contains the map elements for the level.
+     * 
+     */
+    public class LevelIterator implements Iterator<MapElements> {
+
+        int column = 0;
+        int row = 0;
+
+        @Override
+        public boolean hasNext() {
+            return !(row == objectsGrid.ROWS - 1 && column == objectsGrid.COLUMNS);
+        }
+
+        @Override
+        public MapElements next() {
+            if (column >= objectsGrid.COLUMNS) {
+                column = 0;
+                row++;
+            }
+
+            MapElements object = objectsGrid.getObjectAt(column, row);
+            MapElements diamond = diamondsGrid.getObjectAt(column, row);
+            MapElements retObj = object;
+
+            column++; //Adds to the column after an object is assigned.
+
+          /**
+           * Checks the diamond grid to see if there is a diamond in it, and returns the diamond if there is.
+           */
+            if (diamond == MapElements.DIAMOND) {
+                if (object == MapElements.CRATE) {
+                    retObj = MapElements.CRATE_ON_DIAMOND;
+                } else if (object == MapElements.FLOOR) {
+                    retObj = diamond;
+                } else {
+                    retObj = object;
+                }
+            }
+
+            return retObj;
+        }
+
+        public Point getCurrentPosition() {
+            return new Point(column, row);
+        }
+    }
+}
