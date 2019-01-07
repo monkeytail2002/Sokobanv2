@@ -1,0 +1,10 @@
+package sokobanelements;
+
+public class Diamond extends ImmovableObject{
+	
+	public Diamond() {
+		image = "Diamond.png";
+		setImageView(setImage());
+	}
+	
+}
