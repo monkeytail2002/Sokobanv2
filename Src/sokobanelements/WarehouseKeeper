@@ -1,0 +1,10 @@
+package sokobanelements;
+
+public class WarehouseKeeper extends ImmovableObject{
+	
+	public WarehouseKeeper() {
+		image = "WarehouseKeeper.png";
+		setImageView(setImage());
+	}
+	
+}
