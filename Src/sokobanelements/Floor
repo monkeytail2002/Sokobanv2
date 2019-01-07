@@ -1,0 +1,10 @@
+package sokobanelements;
+
+public class Floor extends ImmovableObject{
+	
+	public Floor() {
+		image = "Floor.png";
+		setImageView(setImage());
+	}
+	
+}
