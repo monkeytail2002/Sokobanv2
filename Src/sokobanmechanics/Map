@@ -1,0 +1,131 @@
+package sokobanmechanics;
+
+import javafx.scene.input.KeyCode;
+
+import java.awt.*;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+
+public class Map {
+	
+
+
+
+    /**
+     * The current level displayed in the game
+     */
+    private Level currentLevel;
+   /**
+     * The list of levels
+     */
+    private List<Level> levels;
+    /**
+     * The game state
+     */
+    private boolean gameComplete = false;
+    /**
+     * The number of moves
+     */
+    private int movesCount = 0;
+    
+
+    /**
+     * Uses a {@link File} to load the game map containing all the levels.
+     *
+     * @param input the file containing the game levels.
+     * @param production true if using the engine in live mode, false
+     *                   only for testing mode.
+     */
+    public Map(InputStream input, boolean production) {
+        levels = loadGameFile(input);
+		currentLevel = getNextLevel(); 
+    }
+
+    public int getMovesCount() {
+        return movesCount;
+    }
+    
+    /**
+     * Loads a game file creating a {@link List} of {@link Level}s.
+     *
+     * @param input - the file containing the levels
+     * @return the list containing the levels
+     */
+    private List<Level> loadGameFile(InputStream input) {
+        List<Level> levels = new ArrayList<>(5);
+        int levelIndex = 0;
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
+            List<String> rawLevel = new ArrayList<>();
+            String levelName = "";
+
+            // START - While loop
+            while (true) {
+                String line = reader.readLine();
+
+                // Break the loop if EOF is reached
+                if (line == null) {
+                    // If the list size is not equal to zero, it means
+                    // that the last level has not been parsed yet.
+                    if (rawLevel.size() != 0) {
+                        Level parsedLevel = new Level(levelName, ++levelIndex, rawLevel);
+                        levels.add(parsedLevel);
+                    }
+                    break;
+                }
+
+                line = line.trim();
+                line = line.toUpperCase();
+                if (line.matches(".*X.*X.*")) { //If there's multiple X's in a line, it adds them in.
+                    rawLevel.add(line);
+                }
+            } // END - While loop
+
+        } catch (IOException e) {
+        	System.out.println("unable to load file.");
+        } 
+        return levels;
+    }
+
+    /**
+     * Returns true if the game is complete.
+     *
+     * @return true if the game is complete, false otherwise
+     */
+    public boolean isGameComplete() {
+        return gameComplete;
+    }
+
+   
+    /**
+     * Returns the next level in the list of levels.
+     *
+     * @return the next level loaded from the save file.
+     */
+    private Level getNextLevel() {
+        if (currentLevel == null) {
+            return levels.get(0);
+        }
+
+        int currentLevelIndex = currentLevel.getIndex();
+        if (currentLevelIndex < levels.size()) {
+            return levels.get(currentLevelIndex + 1);
+        }
+
+        gameComplete = true;
+        return null;
+    }
+
+    /**
+     * Returns the current level.
+     *
+     * @return the current level.
+     */
+    public Level getCurrentLevel() {
+        return currentLevel;
+    }
+
+}
