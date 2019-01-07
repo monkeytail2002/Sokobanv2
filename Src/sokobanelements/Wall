@@ -1,0 +1,10 @@
+package sokobanelements;
+
+public class Wall extends ImmovableObject{
+	
+	public Wall() {
+		image = "Wall.png";
+		setImageView(setImage());
+	}
+	
+}
